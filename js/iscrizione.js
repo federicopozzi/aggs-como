@@ -107,15 +107,18 @@ function aggiornaSezioneMinorenne(minore) {
 // ──────────────────────────────────────────────
 
 async function init() {
+  let aperte = false;
   try {
     const { data } = await getImpostazione('iscrizioni_aperte');
-
-    if ((data?.valore ?? 'true') === 'false') {
-      mostraIscrizioniChiuse();
-      return;
-    }
+    aperte = data?.valore === 'true';
   } catch {
-    // fail open: se non riesce a leggere il setting, mostra il form
+    // fail closed: senza conferma il form resta chiuso
+  }
+
+  document.querySelector('.container-sm')?.removeAttribute('data-iscrizione');
+  if (!aperte) {
+    mostraIscrizioniChiuse();
+    return;
   }
 
   populateAnnoAssociativo();

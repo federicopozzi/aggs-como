@@ -209,6 +209,8 @@ small {
 .flex-1       { flex: 1; }
 
 .hidden       { display: none !important; }
+/* Elementi dell'iscrizione annuale: nascosti finché js/components.js non conferma iscrizioni_aperte=true */
+[data-iscrizione] { display: none !important; }
 .sr-only {
   position: absolute;
   width: 1px;

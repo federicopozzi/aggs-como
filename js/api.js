@@ -30,7 +30,7 @@ export function apiPost(action, data = {}, password) {
 }
 
 // Lettura di un'impostazione, condivisa tra gli script della stessa pagina
-// (components.js, iscrizione.js e contatti.js chiedono tutti iscrizioni_aperte).
+// (components.js e iscrizione.js chiedono entrambi iscrizioni_aperte).
 const impostazioniCache = {};
 export function getImpostazione(chiave) {
   impostazioniCache[chiave] ??= apiGet('impostazioni.get', { chiave });

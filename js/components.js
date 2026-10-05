@@ -56,7 +56,7 @@ function renderHeader(el) {
       ${navLinksHTML()}
     </nav>
 
-    <a href="iscrizione.html" class="btn btn-accent btn-sm header-cta">Iscriviti</a>
+    <a href="iscrizione.html" class="btn btn-accent btn-sm header-cta" data-iscrizione>Iscriviti</a>
   </div>
 </div>
   `.trim();
@@ -72,6 +72,7 @@ function renderHeader(el) {
     const fab = document.createElement('a');
     fab.href = 'iscrizione.html';
     fab.className = 'fab fab-extended';
+    fab.dataset.iscrizione = '';
     fab.innerHTML = '<span class="icon" aria-hidden="true">edit</span><span>Iscriviti</span>';
     document.body.appendChild(fab);
   }
@@ -106,7 +107,7 @@ function renderFooter(el) {
         <li><a href="index.html">Home</a></li>
         <li><a href="storia.html">Chi siamo</a></li>
         <li><a href="calendario.html">Calendario</a></li>
-        <li><a href="iscrizione.html">Iscrizione</a></li>
+        <li data-iscrizione><a href="iscrizione.html">Iscrizione</a></li>
         <li><a href="contatti.html">Contatti</a></li>
       </ul>
     </div>
@@ -200,18 +201,10 @@ if (footerEl) {
   try {
     const { data } = await getImpostazione('iscrizioni_aperte');
 
-    if ((data?.valore ?? 'true') === 'false') {
-      // Nasconde i bottoni CTA "Iscriviti" nell'header e il FAB
-      document.querySelectorAll('.header-cta, .fab').forEach(el => {
-        el.style.display = 'none';
-      });
-      // Nasconde il bottone CTA nella home (se presente)
-      const heroBtn = document.getElementById('btn-hero-iscriviti');
-      if (heroBtn) heroBtn.style.display = 'none';
-      const ctaSection = document.getElementById('section-cta-iscrizione');
-      if (ctaSection) ctaSection.style.display = 'none';
+    if (data?.valore === 'true') {
+      document.querySelectorAll('[data-iscrizione]').forEach(el => el.removeAttribute('data-iscrizione'));
     }
   } catch {
-    // fail open: mostra i bottoni se non riesce a leggere il setting
+    // fail closed: senza conferma i bottoni restano nascosti
   }
 })();

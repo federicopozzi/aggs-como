@@ -1,4 +1,4 @@
-import { apiPost, getImpostazione } from './api.js';
+import { apiPost } from './api.js';
 
 // ──────────────────────────────────────────────
 // INIT
@@ -10,16 +10,6 @@ function init() {
     if (!validaForm()) return;
     await inviaIscrizione();
   });
-
-  checkIscrizioniAperte();
-}
-
-async function checkIscrizioniAperte() {
-  const { data, error } = await getImpostazione('iscrizioni_aperte');
-
-  if (!error && (data?.valore ?? 'true') === 'false') {
-    document.getElementById('box-iscrizione-cta')?.classList.add('hidden');
-  }
 }
 
 // ──────────────────────────────────────────────
