@@ -822,7 +822,7 @@ function mostraErrore(msg, conLink = false) {
     <div class="section">
       <div class="container-sm">
         <div class="empty-state">
-          <div class="empty-state-icon" aria-hidden="true">😕</div>
+          <div class="empty-state-icon" aria-hidden="true"><span class="icon">sentiment_dissatisfied</span></div>
           <p>${msg}</p>
           ${conLink ? `<a href="calendario.html" class="btn btn-primary mt-md">Torna al calendario</a>` : ''}
         </div>

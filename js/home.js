@@ -54,7 +54,7 @@ async function loadPreview() {
   if (error || !data?.length) {
     container.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1">
-        <div class="empty-state-icon" aria-hidden="true">📅</div>
+        <div class="empty-state-icon" aria-hidden="true"><span class="icon">event_upcoming</span></div>
         <p>Nessuna attività in programma al momento.<br>Torna presto per scoprire le novità!</p>
         <a href="calendario.html" class="btn btn-outline mt-md">Vai al calendario</a>
       </div>

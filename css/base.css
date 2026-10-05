@@ -1,24 +1,42 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,500;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block');
 
 /* ============================================================
    VARIABILI
    ============================================================ */
 
 :root {
-  --color-primary:       #061991;
+  /* Ruoli colore Material 3 (derivati dai colori di marca) */
+  --md-primary:                  #061991;
+  --md-on-primary:               #ffffff;
+  --md-primary-container:        #dfe0ff;
+  --md-on-primary-container:     #000d61;
+  --md-secondary-container:      #ffdcc2;
+  --md-on-secondary-container:   #2e1500;
+  --md-surface:                  #fbf8f4;
+  --md-surface-container-lowest: #ffffff;
+  --md-surface-container-low:    #f5f2f6;
+  --md-surface-container:        #efecf3;
+  --md-surface-container-high:   #e9e7ef;
+  --md-surface-container-highest:#e3e1ea;
+  --md-inverse-surface:          #2f3036;
+  --md-outline:                  #767680;
+  --md-outline-variant:          #c6c5d0;
+
+  --color-primary:       var(--md-primary);
   --color-primary-dark:  #04116a;
-  --color-primary-light: #eaeafe;
+  --color-primary-light: var(--md-primary-container);
   --color-accent:        #EE891D;
-  --color-accent-dark:   #c97012;
-  --color-bg:            #f9f7f4;
-  --color-surface:       #ffffff;
+  --color-accent-dark:   #a85a00;
+  --color-bg:            var(--md-surface);
+  --color-surface:       var(--md-surface-container-lowest);
   --color-text:          #1a1a2e;
-  --color-text-muted:    #6b7280;
-  --color-border:        #e2e4e9;
-  --color-success:       #2d7a47;
-  --color-success-bg:    #eaf4ee;
-  --color-error:         #c0392b;
-  --color-error-bg:      #fdf0ee;
+  --color-text-muted:    #5c5d69;
+  --color-border:        var(--md-outline-variant);
+  --color-success:       #1f6b3a;
+  --color-success-bg:    #d8f0df;
+  --color-error:         #ba1a1a;
+  --color-error-bg:      #ffdad6;
 
   --font-heading: 'Space Mono', monospace;
   --font-body:    'DM Sans', sans-serif;
@@ -31,15 +49,26 @@
   --space-xl:  2rem;
   --space-2xl: 3rem;
 
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
+  --radius-xs:   4px;
+  --radius-sm:   8px;
+  --radius-md:   16px;
+  --radius-lg:   28px;
+  --radius-full: 999px;
 
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+  /* Elevazioni Material 3 */
+  --elev-1: 0 1px 2px rgba(0,0,0,0.20), 0 1px 3px 1px rgba(0,0,0,0.10);
+  --elev-2: 0 1px 2px rgba(0,0,0,0.20), 0 2px 6px 2px rgba(0,0,0,0.10);
+  --elev-3: 0 1px 3px rgba(0,0,0,0.20), 0 4px 8px 3px rgba(0,0,0,0.10);
+  --shadow-sm: var(--elev-1);
+  --shadow-md: var(--elev-2);
+  --shadow-lg: var(--elev-3);
 
-  --transition: 0.2s ease;
+  /* Movimento */
+  --ease-standard:   cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --transition: 0.2s var(--ease-standard);
+
+  --bottom-nav-height: 80px;
 }
 
 /* ============================================================
@@ -230,3 +259,60 @@ small {
 .rounded-lg       { border-radius: var(--radius-lg); }
 .shadow-sm        { box-shadow: var(--shadow-sm); }
 .shadow-md        { box-shadow: var(--shadow-md); }
+
+/* ============================================================
+   ICONE — Material Symbols Rounded
+   ============================================================ */
+
+.icon {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.icon-filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+/* ============================================================
+   STATE LAYER (Material 3) — hover 8%, focus/press 12%
+   ============================================================ */
+
+.state-layer {
+  position: relative;
+  isolation: isolate;
+}
+
+.state-layer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  transition: opacity var(--transition);
+}
+
+.state-layer:hover::before         { opacity: 0.08; }
+.state-layer:focus-visible::before,
+.state-layer:active::before        { opacity: 0.12; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

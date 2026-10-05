@@ -68,7 +68,7 @@ function renderLista() {
   if (!items.length) {
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon" aria-hidden="true">📅</div>
+        <div class="empty-state-icon" aria-hidden="true"><span class="icon">event_busy</span></div>
         <p>Nessuna attività in programma${tipoFiltro !== 'tutti' ? ' per questa categoria' : ''}.<br>Torna presto per scoprire le novità!</p>
       </div>
     `;

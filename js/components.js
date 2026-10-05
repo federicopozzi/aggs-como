@@ -8,10 +8,10 @@ import './reveal.js';
  */
 
 const NAV_LINKS = [
-  { href: 'index.html',      label: 'Home' },
-  { href: 'storia.html',     label: 'Chi siamo' },
-  { href: 'calendario.html', label: 'Calendario' },
-  { href: 'contatti.html',   label: 'Contatti' },
+  { href: 'index.html',      label: 'Home',       icon: 'home' },
+  { href: 'storia.html',     label: 'Chi siamo',  icon: 'groups' },
+  { href: 'calendario.html', label: 'Calendario', icon: 'calendar_month' },
+  { href: 'contatti.html',   label: 'Contatti',   icon: 'mail' },
 ];
 
 function currentPage() {
@@ -25,6 +25,17 @@ function navLinksHTML(extraClass = '') {
   return NAV_LINKS.map(({ href, label }) => {
     const active = page === href ? ' active' : '';
     return `<a href="${href}" class="${extraClass}${active}">${label}</a>`;
+  }).join('');
+}
+
+function bottomNavHTML() {
+  const page = currentPage();
+  return NAV_LINKS.map(({ href, label, icon }) => {
+    const active = page === href;
+    return `<a href="${href}"${active ? ' class="active" aria-current="page"' : ''}>
+      <span class="bottom-nav-indicator"><span class="icon" aria-hidden="true">${icon}</span></span>
+      <span>${label}</span>
+    </a>`;
   }).join('');
 }
 
@@ -46,45 +57,29 @@ function renderHeader(el) {
     </nav>
 
     <a href="iscrizione.html" class="btn btn-accent btn-sm header-cta">Iscriviti</a>
-
-    <button class="nav-toggle" id="nav-toggle"
-            aria-controls="mobile-menu"
-            aria-expanded="false"
-            aria-label="Apri menu">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-        <line x1="3" y1="6"  x2="19" y2="6"  stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <line x1="3" y1="11" x2="19" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <line x1="3" y1="16" x2="19" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </button>
   </div>
 </div>
-
-<nav class="mobile-menu" id="mobile-menu" aria-label="Menu mobile">
-  ${navLinksHTML()}
-  <a href="iscrizione.html" class="btn btn-accent mt-md">Iscriviti</a>
-</nav>
   `.trim();
 
-  const toggle = el.querySelector('#nav-toggle');
-  const menu   = el.querySelector('#mobile-menu');
+  // Navigation bar (mobile) e FAB "Iscriviti": fuori dall'header sticky
+  const bottomNav = document.createElement('nav');
+  bottomNav.className = 'bottom-nav';
+  bottomNav.setAttribute('aria-label', 'Navigazione principale mobile');
+  bottomNav.innerHTML = bottomNavHTML();
+  document.body.appendChild(bottomNav);
 
-  toggle.addEventListener('click', () => {
-    const open = menu.classList.toggle('is-open');
-    toggle.setAttribute('aria-expanded', open);
-    toggle.setAttribute('aria-label', open ? 'Chiudi menu' : 'Apri menu');
-    document.body.style.overflow = open ? 'hidden' : '';
-  });
+  if (currentPage() !== 'iscrizione.html') {
+    const fab = document.createElement('a');
+    fab.href = 'iscrizione.html';
+    fab.className = 'fab fab-extended';
+    fab.innerHTML = '<span class="icon" aria-hidden="true">edit</span><span>Iscriviti</span>';
+    document.body.appendChild(fab);
+  }
 
-  // Chiudi cliccando un link mobile
-  menu.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => {
-      menu.classList.remove('is-open');
-      toggle.setAttribute('aria-expanded', 'false');
-      toggle.setAttribute('aria-label', 'Apri menu');
-      document.body.style.overflow = '';
-    });
-  });
+  // Top app bar: elevazione quando la pagina scorre
+  const onScroll = () => el.classList.toggle('is-scrolled', window.scrollY > 4);
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 }
 
 function renderFooter(el) {
@@ -159,47 +154,24 @@ function renderFooter(el) {
 (function initToast() {
   const container = document.createElement('div');
   container.id = 'toast-container';
+  container.className = 'snackbar-container';
   container.setAttribute('aria-live', 'polite');
   container.setAttribute('aria-atomic', 'false');
-  Object.assign(container.style, {
-    position: 'fixed',
-    bottom: '1.5rem',
-    right: '1.5rem',
-    zIndex: '9000',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem',
-    pointerEvents: 'none',
-  });
   document.body.appendChild(container);
 
+  const ICONS = { success: 'check_circle', error: 'error', info: 'info' };
+
   window.showToast = function(msg, type = 'success') {
-    const bg = { success: '#2d7a47', error: '#c0392b', info: '#061991' }[type] || '#061991';
+    const kind = ICONS[type] ? type : 'info';
     const toast = document.createElement('div');
-    Object.assign(toast.style, {
-      background: bg,
-      color: '#fff',
-      padding: '0.75rem 1.25rem',
-      borderRadius: '8px',
-      fontSize: '0.875rem',
-      fontWeight: '500',
-      maxWidth: '320px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
-      pointerEvents: 'auto',
-      opacity: '0',
-      transform: 'translateY(0.5rem)',
-      transition: 'opacity 0.2s, transform 0.2s',
-    });
-    toast.textContent = msg;
+    toast.className = `snackbar snackbar-${kind}`;
+    toast.innerHTML = `<span class="icon" aria-hidden="true">${ICONS[kind]}</span><span></span>`;
+    toast.lastElementChild.textContent = msg;
     container.appendChild(toast);
-    requestAnimationFrame(() => {
-      toast.style.opacity = '1';
-      toast.style.transform = 'translateY(0)';
-    });
+    requestAnimationFrame(() => toast.classList.add('is-visible'));
     setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateY(0.5rem)';
-      setTimeout(() => toast.remove(), 250);
+      toast.classList.remove('is-visible');
+      setTimeout(() => toast.remove(), 300);
     }, 3500);
   };
 })();
@@ -229,12 +201,10 @@ if (footerEl) {
     const { data } = await getImpostazione('iscrizioni_aperte');
 
     if ((data?.valore ?? 'true') === 'false') {
-      // Nasconde i bottoni CTA "Iscriviti" nell'header (desktop e mobile)
-      if (headerEl) {
-        headerEl.querySelectorAll('a[href="iscrizione.html"]').forEach(el => {
-          el.style.display = 'none';
-        });
-      }
+      // Nasconde i bottoni CTA "Iscriviti" nell'header e il FAB
+      document.querySelectorAll('.header-cta, .fab').forEach(el => {
+        el.style.display = 'none';
+      });
       // Nasconde il bottone CTA nella home (se presente)
       const heroBtn = document.getElementById('btn-hero-iscriviti');
       if (heroBtn) heroBtn.style.display = 'none';

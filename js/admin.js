@@ -151,7 +151,7 @@ async function loadAttivita() {
   if (!data.length) {
     el.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon" aria-hidden="true">📋</div>
+        <div class="empty-state-icon" aria-hidden="true"><span class="icon">assignment</span></div>
         <p>Nessuna attività trovata. Creane una con il pulsante qui sopra.</p>
       </div>`;
     return;
@@ -804,7 +804,7 @@ async function loadAvvisiAdmin() {
   if (!data.length) {
     el.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon" aria-hidden="true">📢</div>
+        <div class="empty-state-icon" aria-hidden="true"><span class="icon">campaign</span></div>
         <p>Nessun avviso. Creane uno con il pulsante qui sopra.</p>
       </div>`;
     return;

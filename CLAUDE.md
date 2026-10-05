@@ -40,9 +40,13 @@ apps-script/Code.gs (API + accesso Foglio) · Email.gs (email, PDF, mailing list
 
 ## Design system
 
-- Font: **DM Sans** (Google Fonts)
-- `--color-primary: #003985` · `--color-accent: #ff751f`
-- `--color-bg: #f9f7f4` · `--color-surface: #ffffff` · `--color-text: #1a1a2e`
+Ispirato a **Material Design 3**, tutto in CSS vanilla (token in `css/base.css`).
+- Font: **Space Mono** (titoli), **DM Sans** (testo), IBM Plex Serif (citazioni/sottotitoli); icone **Material Symbols Rounded** con `<span class="icon">nome</span>`
+- Marca: `--md-primary: #061991` · `--color-accent: #EE891D` (testo scuro `#1f1000` sopra l'arancione per contrasto AA)
+- Ruoli M3: `--md-primary-container`, `--md-secondary-container`, `--md-surface-container-lowest…highest`, `--md-outline(-variant)`; le vecchie `--color-*` puntano a questi
+- Forme `--radius-xs/sm/md/lg/full` (4/8/16/28/pillola) · elevazioni `--elev-1..3` · easing `--ease-standard|emphasized`
+- Bottoni: `btn-primary` (filled), `btn-accent`, `btn-tonal`, `btn-outline`, `btn-ghost` (text); `.pill` = filter chip; `.card-outlined|filled`
+- Mobile (< 768px): navigation bar in basso + FAB "Iscriviti", generati da `js/components.js`; `window.showToast` = snackbar
 - Mobile-first, breakpoint `768px`, contrasto AA, focus visibile
 
 ---
