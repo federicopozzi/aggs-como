@@ -4,14 +4,24 @@ import { API_URL } from './config.js';
 // Ogni funzione restituisce { data, error },
 // con error = { message, code } oppure null.
 
-async function call(url, options) {
+// Oltre questo tempo la richiesta viene annullata, così la pagina non resta in caricamento infinito.
+const TIMEOUT_MS = 60000;
+
+async function call(url, options = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const res  = await fetch(url, options);
+    const res  = await fetch(url, { ...options, signal: controller.signal });
     const json = await res.json();
     if (json.error) return { data: null, error: { message: json.error, code: json.code || null } };
     return { data: json.data ?? null, error: null };
   } catch (err) {
+    if (err.name === 'AbortError') {
+      return { data: null, error: { message: 'Il server non risponde, ricarica la pagina e riprova', code: 'timeout' } };
+    }
     return { data: null, error: { message: 'Servizio non raggiungibile', code: 'network' } };
+  } finally {
+    clearTimeout(timer);
   }
 }
 
