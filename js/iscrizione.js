@@ -1,7 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import { apiPost, getImpostazione } from './api.js';
 
 // ──────────────────────────────────────────────
 // ANNO ASSOCIATIVO
@@ -111,11 +108,7 @@ function aggiornaSezioneMinorenne(minore) {
 
 async function init() {
   try {
-    const { data } = await supabase
-      .from('impostazioni')
-      .select('valore')
-      .eq('chiave', 'iscrizioni_aperte')
-      .single();
+    const { data } = await getImpostazione('iscrizioni_aperte');
 
     if ((data?.valore ?? 'true') === 'false') {
       mostraIscrizioniChiuse();
@@ -257,7 +250,7 @@ async function inviaIscrizione() {
     note:                 document.getElementById('note').value.trim() || null,
   };
 
-  const { error } = await supabase.from('soci').insert(payload);
+  const { error } = await apiPost('soci.insert', payload);
 
   if (error) {
     btn.disabled  = false;

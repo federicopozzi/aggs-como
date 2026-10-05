@@ -1,6 +1,3 @@
-# Supabase CLI — dati locali sensibili (project ref, org ID)
-supabase/.temp/
-
 # Claude Code — impostazioni locali
 .claude/settings.local.json
 

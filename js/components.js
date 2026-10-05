@@ -1,5 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+import { getImpostazione } from './api.js';
 import './reveal.js';
 
 /**
@@ -227,12 +226,7 @@ if (footerEl) {
 
 (async function applyIscrizioniSetting() {
   try {
-    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const { data } = await sb
-      .from('impostazioni')
-      .select('valore')
-      .eq('chiave', 'iscrizioni_aperte')
-      .single();
+    const { data } = await getImpostazione('iscrizioni_aperte');
 
     if ((data?.valore ?? 'true') === 'false') {
       // Nasconde i bottoni CTA "Iscriviti" nell'header (desktop e mobile)

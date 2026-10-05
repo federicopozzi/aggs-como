@@ -1,9 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
-
-const supabase = (() => {
-  try { return createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch { return null; }
-})();
+import { apiGet } from './api.js';
 
 const TIPO_LABEL = {
   uscita_giorno: 'Uscita',
@@ -54,19 +49,7 @@ async function loadPreview() {
   const container = document.getElementById('attivita-preview');
   if (!container) return;
 
-  if (!supabase) {
-    container.innerHTML = '<p class="text-muted" style="grid-column:1/-1">Attività non disponibili al momento.</p>';
-    return;
-  }
-
-  const oggi = new Date().toISOString().slice(0, 10);
-  const { data, error } = await supabase
-    .from('attivita')
-    .select('id, nome, tipo, data_inizio, data_fine, descrizione, immagine_url, ha_form_iscrizione')
-    .eq('attiva', true)
-    .gte('data_inizio', oggi)
-    .order('data_inizio', { ascending: true })
-    .limit(3);
+  const { data, error } = await apiGet('attivita.prossime', { limit: 3 });
 
   if (error || !data?.length) {
     container.innerHTML = `
@@ -108,15 +91,9 @@ function avvisoHTML(a) {
 async function loadAvvisi() {
   const section = document.getElementById('section-avvisi');
   const list    = document.getElementById('avvisi-list');
-  if (!section || !list || !supabase) return;
+  if (!section || !list) return;
 
-  const oggi = new Date().toISOString().slice(0, 10);
-  const { data, error } = await supabase
-    .from('avvisi')
-    .select('id, titolo, testo, tipo')
-    .eq('attivo', true)
-    .or(`data_scadenza.is.null,data_scadenza.gte.${oggi}`)
-    .order('created_at', { ascending: false });
+  const { data, error } = await apiGet('avvisi.attivi');
 
   if (error || !data?.length) return;
 

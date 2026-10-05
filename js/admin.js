@@ -1,15 +1,21 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY } from './config.js';
+import { apiPost } from './api.js';
 
-// Usa service_role key per bypassare RLS; fallback su anon key (con warning)
-const activeKey = SUPABASE_SERVICE_KEY || SUPABASE_ANON_KEY;
+// La password è verificata da Apps Script e inviata con ogni richiesta admin.
+const SESSION_KEY = 'aggs_admin_pwd';
 
-const supabase = createClient(SUPABASE_URL, activeKey, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+async function adminApi(action, data = {}) {
+  const res = await apiPost(action, data, sessionStorage.getItem(SESSION_KEY));
+  if (res.error?.code === 'unauthorized') doLogout();
+  return res;
+}
 
-const ADMIN_PASSWORD = 'LupiCocci';
-const SESSION_KEY    = 'aggs_admin_ok';
+const db = {
+  select: (table, opts = {})    => adminApi('admin.select', { table, ...opts }),
+  get:    (table, id)           => adminApi('admin.select', { table, where: { id }, single: true }),
+  insert: (table, row)          => adminApi('admin.insert', { table, row }),
+  update: (table, where, patch) => adminApi('admin.update', { table, where, patch }),
+  delete: (table, id)           => adminApi('admin.delete', { table, id }),
+};
 
 // ──────────────────────────────────────────────
 // TOAST (locale — admin.html non carica components.js)
@@ -48,15 +54,14 @@ const SESSION_KEY    = 'aggs_admin_ok';
 // ──────────────────────────────────────────────
 
 function isLoggedIn() {
-  return sessionStorage.getItem(SESSION_KEY) === '1';
+  return !!sessionStorage.getItem(SESSION_KEY);
 }
 
-function doLogin(password) {
-  if (password === ADMIN_PASSWORD) {
-    sessionStorage.setItem(SESSION_KEY, '1');
-    return true;
-  }
-  return false;
+async function doLogin(password) {
+  const { error } = await apiPost('admin.login', {}, password);
+  if (error) return false;
+  sessionStorage.setItem(SESSION_KEY, password);
+  return true;
 }
 
 function doLogout() {
@@ -71,10 +76,10 @@ function doLogout() {
 // ──────────────────────────────────────────────
 
 function init() {
-  document.getElementById('login-form').addEventListener('submit', (e) => {
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const errEl = document.getElementById('login-error');
-    if (doLogin(document.getElementById('login-password').value)) {
+    if (await doLogin(document.getElementById('login-password').value)) {
       errEl.classList.add('hidden');
       startAdmin();
     } else {
@@ -90,10 +95,6 @@ function init() {
 function startAdmin() {
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('admin-panel').classList.remove('hidden');
-
-  if (!SUPABASE_SERVICE_KEY) {
-    document.getElementById('warn-service-key').classList.remove('hidden');
-  }
 
   document.getElementById('btn-logout').addEventListener('click', doLogout);
 
@@ -140,10 +141,7 @@ async function loadAttivita() {
   const el = document.getElementById('attivita-list');
   el.innerHTML = '<div class="loading-overlay"><span class="spinner"></span><span>Caricamento…</span></div>';
 
-  const { data, error } = await supabase
-    .from('attivita')
-    .select('id,nome,tipo,data_inizio,data_fine,attiva,ha_form_iscrizione,quota')
-    .order('data_inizio', { ascending: false });
+  const { data, error } = await db.select('attivita', { order: 'data_inizio', desc: true });
 
   if (error) {
     el.innerHTML = `<div class="alert alert-error">Errore: ${error.message}</div>`;
@@ -234,10 +232,7 @@ async function toggleAttiva(id, attualmenteAttiva) {
     if (!ok) return;
   }
 
-  const { error } = await supabase
-    .from('attivita')
-    .update({ attiva: !attualmenteAttiva })
-    .eq('id', id);
+  const { error } = await db.update('attivita', { id }, { attiva: !attualmenteAttiva });
 
   if (error) {
     if (window.showToast) window.showToast(`Errore: ${error.message}`, 'error');
@@ -257,10 +252,7 @@ async function toggleFormIscrizione(id, haFormAttuale) {
     if (!ok) return;
   }
 
-  const { error } = await supabase
-    .from('attivita')
-    .update({ ha_form_iscrizione: !haFormAttuale })
-    .eq('id', id);
+  const { error } = await db.update('attivita', { id }, { ha_form_iscrizione: !haFormAttuale });
 
   if (error) {
     if (window.showToast) window.showToast(`Errore: ${error.message}`, 'error');
@@ -392,8 +384,7 @@ async function apriModalModifica(id) {
   renderCampiExtraList();
   apriModal();
 
-  const { data, error } = await supabase
-    .from('attivita').select('*').eq('id', id).single();
+  const { data, error } = await db.get('attivita', id);
 
   if (error) {
     document.getElementById('form-att-error').textContent = `Errore nel caricamento: ${error.message}`;
@@ -499,19 +490,23 @@ function renderCampiExtraList() {
   });
 }
 
+// Il PDF viene salvato in una cartella Google Drive condivisa con link.
 async function uploadPDF(file) {
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const path     = `attivita/${Date.now()}-${safeName}`;
+  const base64   = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = () => reject(new Error('Lettura del file non riuscita'));
+    reader.readAsDataURL(file);
+  });
 
-  const { error } = await supabase.storage
-    .from('documenti-attivita')
-    .upload(path, file, { contentType: 'application/pdf', upsert: false });
+  const { data, error } = await adminApi('admin.upload', {
+    filename: `${Date.now()}-${safeName}`,
+    base64,
+  });
 
   if (error) throw error;
-
-  const { data: { publicUrl } } = supabase.storage
-    .from('documenti-attivita')
-    .getPublicUrl(path);
+  const publicUrl = data.url;
 
   const nome = file.name.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ');
   return { nome, url: publicUrl };
@@ -582,8 +577,8 @@ async function salvaAttivita() {
   };
 
   const { error } = editingId
-    ? await supabase.from('attivita').update(payload).eq('id', editingId)
-    : await supabase.from('attivita').insert(payload);
+    ? await db.update('attivita', { id: editingId }, payload)
+    : await db.insert('attivita', payload);
 
   btn.disabled  = false;
   btn.innerHTML = editingId ? 'Salva modifiche' : 'Salva attività';
@@ -603,8 +598,7 @@ async function eliminaAttivita() {
   if (!editingId) return;
   if (!confirm('Eliminare questa attività definitivamente?\n\nVerranno eliminate anche tutte le iscrizioni collegate. L\'azione non è reversibile.')) return;
 
-  const { error } = await supabase
-    .from('attivita').delete().eq('id', editingId);
+  const { error } = await db.delete('attivita', editingId);
 
   if (error) { window.showToast(`Errore: ${error.message}`, 'error'); return; }
 
@@ -620,10 +614,7 @@ async function eliminaAttivita() {
 let iscrizioniSelectInit = false;
 
 async function initIscrizioni() {
-  const { data, error } = await supabase
-    .from('attivita')
-    .select('id,nome,data_inizio')
-    .order('data_inizio', { ascending: false });
+  const { data, error } = await db.select('attivita', { order: 'data_inizio', desc: true });
 
   const select = document.getElementById('select-attivita-isc');
   if (error || !data) return;
@@ -661,11 +652,11 @@ async function loadIscrizioni(attivitaId) {
   const el = document.getElementById('iscrizioni-content');
   el.innerHTML = '<div class="loading-overlay"><span class="spinner"></span><span>Caricamento…</span></div>';
 
-  const { data, error } = await supabase
-    .from('iscrizioni_attivita')
-    .select('*')
-    .eq('attivita_id', attivitaId)
-    .order('data_iscrizione', { ascending: false });
+  const { data, error } = await db.select('iscrizioni_attivita', {
+    where: { attivita_id: attivitaId },
+    order: 'data_iscrizione',
+    desc:  true,
+  });
 
   if (error) { el.innerHTML = `<div class="alert alert-error">Errore: ${error.message}</div>`; return; }
 
@@ -747,10 +738,7 @@ async function cambiaStato(id, nuovoStato, attivitaId) {
     if (!ok) return;
   }
 
-  const { error } = await supabase
-    .from('iscrizioni_attivita')
-    .update({ stato: nuovoStato })
-    .eq('id', id);
+  const { error } = await db.update('iscrizioni_attivita', { id }, { stato: nuovoStato });
 
   if (error) {
     if (window.showToast) window.showToast(`Errore: ${error.message}`, 'error');
@@ -806,10 +794,7 @@ async function loadAvvisiAdmin() {
   const el = document.getElementById('avvisi-admin-list');
   el.innerHTML = '<div class="loading-overlay"><span class="spinner"></span><span>Caricamento…</span></div>';
 
-  const { data, error } = await supabase
-    .from('avvisi')
-    .select('id, titolo, tipo, attivo, data_scadenza, created_at')
-    .order('created_at', { ascending: false });
+  const { data, error } = await db.select('avvisi', { order: 'created_at', desc: true });
 
   if (error) {
     el.innerHTML = `<div class="alert alert-error">Errore: ${error.message}</div>`;
@@ -882,10 +867,7 @@ function renderAvvisoRow(a) {
 }
 
 async function toggleAttivoAvviso(id, attivoAttuale) {
-  const { error } = await supabase
-    .from('avvisi')
-    .update({ attivo: !attivoAttuale })
-    .eq('id', id);
+  const { error } = await db.update('avvisi', { id }, { attivo: !attivoAttuale });
 
   if (error) { window.showToast(`Errore: ${error.message}`, 'error'); return; }
   window.showToast(attivoAttuale ? 'Avviso disattivato.' : 'Avviso attivato.');
@@ -935,8 +917,7 @@ async function apriModalModificaAvviso(id) {
   document.getElementById('form-avviso-error').classList.add('hidden');
   apriModalAvviso();
 
-  const { data, error } = await supabase
-    .from('avvisi').select('*').eq('id', id).single();
+  const { data, error } = await db.get('avvisi', id);
 
   if (error) {
     document.getElementById('form-avviso-error').textContent = `Errore nel caricamento: ${error.message}`;
@@ -978,8 +959,8 @@ async function salvaAvviso() {
   };
 
   const { error } = editingAvvisoId
-    ? await supabase.from('avvisi').update(payload).eq('id', editingAvvisoId)
-    : await supabase.from('avvisi').insert(payload);
+    ? await db.update('avvisi', { id: editingAvvisoId }, payload)
+    : await db.insert('avvisi', payload);
 
   btn.disabled    = false;
   btn.textContent = editingAvvisoId ? 'Salva modifiche' : 'Salva avviso';
@@ -999,8 +980,7 @@ async function eliminaAvviso() {
   if (!editingAvvisoId) return;
   if (!confirm('Eliminare questo avviso definitivamente? L\'azione non è reversibile.')) return;
 
-  const { error } = await supabase
-    .from('avvisi').delete().eq('id', editingAvvisoId);
+  const { error } = await db.delete('avvisi', editingAvvisoId);
 
   if (error) { window.showToast(`Errore: ${error.message}`, 'error'); return; }
 
@@ -1022,17 +1002,13 @@ async function loadImpostazioni() {
   btn.disabled    = true;
   btn.textContent = 'Caricamento…';
 
-  const { data, error } = await supabase
-    .from('impostazioni')
-    .select('valore')
-    .eq('chiave', 'iscrizioni_aperte')
-    .single();
+  const { data, error } = await db.select('impostazioni', { where: { chiave: 'iscrizioni_aperte' }, single: true });
 
   if (error) {
     badge.innerHTML = `
       <div class="alert alert-error" style="margin:0">
         Errore: ${error.message}<br>
-        Esegui prima la migration SQL (sezione IMPOSTAZIONI in schema.sql).
+        Esegui la funzione <code>setup</code> in Apps Script (vedi apps-script/README.md).
       </div>`;
     btn.textContent = 'Non disponibile';
     return;
@@ -1070,10 +1046,10 @@ async function toggleIscrizioni(attualmenteAperte) {
   btn.disabled  = true;
   btn.innerHTML = '<span class="spinner" style="width:1rem;height:1rem;border-width:2px"></span>';
 
-  const { error } = await supabase
-    .from('impostazioni')
-    .update({ valore: attualmenteAperte ? 'false' : 'true', updated_at: new Date().toISOString() })
-    .eq('chiave', 'iscrizioni_aperte');
+  const { error } = await db.update('impostazioni', { chiave: 'iscrizioni_aperte' }, {
+    valore:     attualmenteAperte ? 'false' : 'true',
+    updated_at: new Date().toISOString(),
+  });
 
   if (error) {
     window.showToast(`Errore: ${error.message}`, 'error');

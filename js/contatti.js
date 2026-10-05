@@ -1,7 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import { apiPost, getImpostazione } from './api.js';
 
 // ──────────────────────────────────────────────
 // INIT
@@ -18,11 +15,7 @@ function init() {
 }
 
 async function checkIscrizioniAperte() {
-  const { data, error } = await supabase
-    .from('impostazioni')
-    .select('valore')
-    .eq('chiave', 'iscrizioni_aperte')
-    .single();
+  const { data, error } = await getImpostazione('iscrizioni_aperte');
 
   if (!error && (data?.valore ?? 'true') === 'false') {
     document.getElementById('box-iscrizione-cta')?.classList.add('hidden');
@@ -80,14 +73,14 @@ async function inviaIscrizione() {
     attivo:           true,
   };
 
-  const { error } = await supabase.from('contatti').insert(payload);
+  const { error } = await apiPost('contatti.insert', payload);
 
   if (error) {
     btn.disabled  = false;
     btn.innerHTML = 'Iscriviti alla newsletter';
 
     // Email già presente (violazione unique)
-    if (error.code === '23505') {
+    if (error.code === 'duplicate') {
       errBox.textContent = 'Questa email è già iscritta alla newsletter.';
     } else {
       errBox.textContent = `Si è verificato un errore: ${error.message}. Riprova o scrivici a aggscomo@gmail.com.`;

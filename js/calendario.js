@@ -1,7 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import { apiGet } from './api.js';
 
 const TIPO_LABEL = {
   uscita_giorno: 'Uscita',
@@ -24,11 +21,7 @@ meseCorrente.setDate(1);
 // ──────────────────────────────────────────────
 
 async function caricaAttivita() {
-  const { data, error } = await supabase
-    .from('attivita')
-    .select('id, nome, tipo, data_inizio, data_fine, descrizione, quota, immagine_url, ha_form_iscrizione')
-    .eq('attiva', true)
-    .order('data_inizio', { ascending: true });
+  const { data, error } = await apiGet('attivita.list');
 
   if (error) {
     mostraErrore(error.message);

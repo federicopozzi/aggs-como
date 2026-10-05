@@ -1,7 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import { apiGet, apiPost } from './api.js';
 
 const TIPO_LABEL = {
   uscita_giorno: 'Uscita',
@@ -22,12 +19,7 @@ async function init() {
     return;
   }
 
-  const { data, error } = await supabase
-    .from('attivita')
-    .select('*')
-    .eq('id', id)
-    .eq('attiva', true)
-    .maybeSingle();
+  const { data, error } = await apiGet('attivita.get', { id });
 
   if (error || !data) {
     mostraErrore("Attività non trovata o non più disponibile.", true);
@@ -473,7 +465,7 @@ async function inviaIscrizione(form, attivita, campiExtra) {
     consenso_privacy: true,
   };
 
-  const { error } = await supabase.from('iscrizioni_attivita').insert(payload);
+  const { error } = await apiPost('iscrizioni.insert', payload);
 
   if (error) {
     btn.disabled = false;
@@ -782,7 +774,7 @@ async function inviaIscrizioneCampoMinori(form, attivita) {
     },
   };
 
-  const { error } = await supabase.from('iscrizioni_attivita').insert(payload);
+  const { error } = await apiPost('iscrizioni.insert', payload);
 
   if (error) {
     btn.disabled  = false;
