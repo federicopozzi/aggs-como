@@ -398,6 +398,13 @@ async function apriModalModifica(id) {
   document.getElementById('att-data-inizio').value  = data.data_inizio || '';
   document.getElementById('att-data-fine').value    = data.data_fine || '';
   document.getElementById('att-quota').value        = data.quota != null ? data.quota : 0;
+  document.getElementById('att-ritrovo-ora').value   = data.ritrovo_ora || '';
+  document.getElementById('att-ritrovo-luogo').value = data.ritrovo_luogo || '';
+  document.getElementById('att-ritrovo-maps').value  = data.ritrovo_maps || '';
+  document.getElementById('att-fine-ora').value      = data.fine_ora || '';
+  document.getElementById('att-fine-luogo').value    = data.fine_luogo || '';
+  document.getElementById('att-fine-maps').value     = data.fine_maps || '';
+  document.getElementById('att-portare').value       = data.portare || '';
   document.getElementById('att-immagine').value     = data.immagine_url || '';
   document.getElementById('att-ha-form').checked          = !!data.ha_form_iscrizione;
   document.getElementById('att-attiva').checked            = !!data.attiva;
@@ -568,6 +575,13 @@ async function salvaAttivita() {
     data_inizio:        dataInizio,
     data_fine:          document.getElementById('att-data-fine').value || null,
     quota:              parseFloat(document.getElementById('att-quota').value) || 0,
+    ritrovo_ora:        document.getElementById('att-ritrovo-ora').value || null,
+    ritrovo_luogo:      document.getElementById('att-ritrovo-luogo').value.trim() || null,
+    ritrovo_maps:       document.getElementById('att-ritrovo-maps').value.trim() || null,
+    fine_ora:           document.getElementById('att-fine-ora').value || null,
+    fine_luogo:         document.getElementById('att-fine-luogo').value.trim() || null,
+    fine_maps:          document.getElementById('att-fine-maps').value.trim() || null,
+    portare:            document.getElementById('att-portare').value.trim() || null,
     immagine_url:       document.getElementById('att-immagine').value.trim() || null,
     ha_form_iscrizione: document.getElementById('att-ha-form').checked,
     nota_iscrizioni:    document.getElementById('att-nota-iscrizioni').value.trim() || null,

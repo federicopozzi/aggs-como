@@ -58,6 +58,15 @@ function renderPagina(a) {
        </div>`
     : '';
 
+  const portareHTML = a.portare
+    ? `<p style="font-weight:600;color:var(--color-text);white-space:pre-line">${a.portare}</p>`
+    : '';
+
+  const orariHTML = [
+    luogoHTML('Ritrovo', a.ritrovo_ora, a.ritrovo_luogo, a.ritrovo_maps),
+    luogoHTML('Fine', a.fine_ora, a.fine_luogo, a.fine_maps),
+  ].filter(Boolean).join('');
+
   const unitaHTML = a.unita_target && a.unita_target !== 'tutti'
     ? `<p class="text-sm text-muted">Riservata a: <strong>${a.unita_target}</strong></p>`
     : '';
@@ -134,11 +143,20 @@ function renderPagina(a) {
                 <p class="text-xs text-muted font-semibold" style="text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Quota</p>
                 <div>${quotaHTML}</div>
               </div>` : ''}
+              ${portareHTML ? `<div>
+                <p class="text-xs text-muted font-semibold" style="text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Portare</p>
+                ${portareHTML}
+              </div>` : ''}
               ${unitaHTML ? `<div><p class="text-xs text-muted font-semibold" style="text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Reparto</p>${unitaHTML}</div>` : ''}
               <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;align-items:flex-end">
                 <button type="button" id="btn-google-cal" class="btn btn-outline btn-sm">Aggiungi a Calendar</button>
               </div>
             </div>
+
+            <!-- Ritrovo e fine -->
+            ${orariHTML
+              ? `<div style="display:flex;flex-direction:column;gap:var(--space-sm);margin-bottom:var(--space-xl)">${orariHTML}</div>`
+              : ''}
 
             <!-- Descrizione -->
             ${a.descrizione
@@ -804,6 +822,22 @@ function calDataFine(iso) {
   const d = new Date(iso + 'T00:00:00');
   d.setDate(d.getDate() + 1);
   return d.toISOString().slice(0, 10).replace(/-/g, '');
+}
+
+// Riga "Ritrovo ore 9:00 presso <luogo>": il luogo apre Google Maps
+// (link indicato dall'admin, altrimenti una ricerca del luogo).
+function luogoHTML(etichetta, ora, luogo, maps) {
+  if (!ora && !luogo) return '';
+  const url = maps || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(luogo || '')}`;
+  return `
+    <p style="display:flex;align-items:flex-start;gap:var(--space-sm);margin:0;max-width:none">
+      <span class="icon" aria-hidden="true" style="color:var(--color-primary)">${etichetta === 'Ritrovo' ? 'location_on' : 'flag'}</span>
+      <span>
+        <strong>${etichetta}</strong>${ora ? ` ore <strong>${ora}</strong>` : ''}${luogo
+          ? ` presso <a href="${url}" target="_blank" rel="noopener">${luogo}</a>`
+          : ''}
+      </span>
+    </p>`;
 }
 
 function urlGoogleCal(a) {

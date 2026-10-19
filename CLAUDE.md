@@ -65,7 +65,7 @@ Ispirato a **Material Design 3**, tutto in CSS vanilla (token in `css/base.css`)
 
 Colonne definite in `SCHEMA` in `apps-script/Code.gs`; riga 1 = intestazioni, tutte le celle in formato testo. Date `yyyy-mm-dd`, booleani `TRUE/FALSE`, JSON come testo.
 
-**`attivita`**: id, nome, descrizione, tipo (`uscita_giorno|campo|riunione|evento`), tipo_modulo, data_inizio, data_fine, quota, unita_target, ha_form_iscrizione, nota_iscrizioni, `campi_extra` (JSON), `documenti` (JSON `[{nome,url}]`), immagine_url, attiva, created_at
+**`attivita`**: id, nome, descrizione, tipo (`uscita_giorno|campo|riunione|evento`), tipo_modulo, data_inizio, data_fine, quota, ritrovo_ora, ritrovo_luogo, ritrovo_maps, fine_ora, fine_luogo, fine_maps, portare, unita_target, ha_form_iscrizione, nota_iscrizioni, `campi_extra` (JSON), `documenti` (JSON `[{nome,url}]`), immagine_url, attiva, created_at
 
 **`soci`**: id, nome, cognome, data_nascita, luogo_nascita, codice_fiscale, classe_frequentata, unita (`lupetti|coccinelle|scout|guide`), anno_associativo, email, telefono, telefono_emergenza, nome_genitore, cognome_genitore, codice_fiscale_genitore, indirizzo_via, indirizzo_citta, indirizzo_cap, iscrizione_mailing_list, consenso_privacy, consenso_foto, note, data_iscrizione
 

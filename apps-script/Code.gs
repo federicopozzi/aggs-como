@@ -13,6 +13,7 @@ const TZ = 'Europe/Rome';
 // (l'ordine nel foglio può cambiare: le colonne sono cercate per nome).
 const SCHEMA = {
   attivita: ['id', 'nome', 'descrizione', 'tipo', 'tipo_modulo', 'data_inizio', 'data_fine', 'quota',
+    'ritrovo_ora', 'ritrovo_luogo', 'ritrovo_maps', 'fine_ora', 'fine_luogo', 'fine_maps', 'portare',
     'unita_target', 'ha_form_iscrizione', 'nota_iscrizioni', 'campi_extra', 'documenti', 'immagine_url',
     'attiva', 'created_at'],
   soci: ['id', 'nome', 'cognome', 'data_nascita', 'luogo_nascita', 'codice_fiscale', 'classe_frequentata',
